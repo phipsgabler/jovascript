@@ -31,6 +31,7 @@ case object JSEmptyStmt extends JSStmt {
 case class JSFunctionDecl(name: Symbol, args: Symbol*)(body: JSStmt*) extends JSStmt {
   override def prettyPrint(i: Int): String = {
     val space = i.spaces
+
     s"""${space}function ${name.name}(${args.map(_.name).mkString(", ")}) {
        |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}}
@@ -67,18 +68,6 @@ case class JSIf(cond: JSExpr,
     val theIf = s"""${space}if ($cond) {
                        |${trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
                        |${space}}""".stripMargin
-
-    val theRest = falseCase.toList match {
-      case Nil => "\n"
-      case (e@JSIf(_, _, _)) :: rest => s""" else if (${e.cond}) {
-                                          |${e.trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
-                                          |${space}}""".stripMargin
-      case stmts =>  s""" else {
-                         |${stmts.map(_.prettyPrint(i + indent)).mkString("\n")}
-                         |${space}}
-                         |""".stripMargin
-    }
-
 
     theIf + printElses(falseCase, i)
   }
