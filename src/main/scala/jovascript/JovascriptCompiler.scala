@@ -2,12 +2,11 @@ package jovascript
 
 import jovascript.parser.{JovascriptASTVisitor, JovascriptParser, JovascriptLexer}
 import org.antlr.v4.runtime._
-import org.antlr.v4.runtime.tree._
 
 object JovascriptCompiler {
   def main(args: Array[String]): Unit = {
 
-    val inputText = "def x: Int = 1;"
+    val inputText = "def x: Number = 1;"
 
     val input = new ANTLRInputStream(inputText)
 

@@ -4,7 +4,7 @@ version := "0.1.0"
 
 scalaVersion := "2.11.2"
 
-mainClass in (Compile, run) := Some("jovascript.JovascriptCompiler")
+mainClass in (Compile, run) := Some("jovascript.JovascriptInterpreter")
 
 antlr4Settings
 

@@ -1,7 +1,7 @@
 grammar Jovascript;
 
 
-INT_LITERAL : [0-9]+ ;
+NUMBER_LITERAL : ( '+' | '-' )? [0-9]+ ;
 
 IDENTIFIER : [a-z] [a-zA-Z0-9_]* ;
 
@@ -21,4 +21,4 @@ definition : 'def' IDENTIFIER ':' type '=' expression ';' ;
 
 statement : expression ';' ;
 
-expression : INT_LITERAL ;
+expression : NUMBER_LITERAL ;
