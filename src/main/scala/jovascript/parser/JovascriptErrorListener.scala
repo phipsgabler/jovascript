@@ -18,7 +18,7 @@ class JovascriptErrorListener extends BaseErrorListener {
                            msg: String,
                            ex: RecognitionException) {
 
-    val fullMessage = s"  $errorCount: $line:$position $msg"
+    val fullMessage = s"  [$line:$position] Error $errorCount: $msg"
 
     if (errorBuilder.isEmpty)
       errorBuilder = Some(ListBuffer(fullMessage))

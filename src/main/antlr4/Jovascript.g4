@@ -17,9 +17,9 @@ OPERATOR : [+-] ;
 
 program : definition* EOF;
 
-typeExpression : TYPENAME                                           # TypeName
-               | '(' typeExpression ')'                             # ParenthesizedTypeExpression
-               |<assoc=right> typeExpression '->' typeExpression    # FunctionType
+typeExpression : TYPENAME                                                   # TypeName
+               | '(' typeExpression ')'                                     # ParenthesizedTypeExpression
+               |<assoc=right> dom=typeExpression '->' cod=typeExpression    # FunctionType
                ;
 
 definition : valueDefinition ;

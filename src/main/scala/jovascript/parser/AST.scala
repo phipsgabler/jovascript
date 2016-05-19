@@ -11,6 +11,7 @@ case class ValueDefinitionNode(name: Symbol, typ: TypeNode, body: ExpressionNode
 
 sealed trait TypeNode extends AST
 case class TypeNameNode(name: Symbol) extends TypeNode
+case class FunctionTypeNode(domain: TypeNode, codomain: TypeNode) extends TypeNode
 
 
 sealed trait ExpressionNode extends AST

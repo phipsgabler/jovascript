@@ -43,10 +43,20 @@ object ExpressionVisitor extends JovascriptBaseVisitor[ExpressionNode] {
   }
 
   override def visitParenthesizedExpression(ctx: ParenthesizedExpressionContext): ExpressionNode = {
-    IdentifierNode('?)
+    visit(ctx.expression)
   }
 }
 
 object TypeExpressionVisitor extends JovascriptBaseVisitor[TypeNode] {
+  override def visitFunctionType(ctx: FunctionTypeContext): TypeNode = {
+    FunctionTypeNode(visit(ctx.dom), visit(ctx.cod))
+  }
 
+  override def visitTypeName(ctx: TypeNameContext): TypeNode = {
+    TypeNameNode(Symbol(ctx.TYPENAME().getText))
+  }
+
+  override def visitParenthesizedTypeExpression(ctx: ParenthesizedTypeExpressionContext): TypeNode = {
+    visit(ctx.typeExpression)
+  }
 }
