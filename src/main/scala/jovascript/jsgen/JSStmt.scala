@@ -48,17 +48,17 @@ case class JSIf(cond: JSExpr,
     val space = i.spaces
 
     stmts.toList match {
-      case Nil => ""
+      case Nil => "\n"
       case (e@JSIf(_, _, _)) :: rest => {
-        val elseIf = s""" else if (${e.cond}) {
-                         |${e.trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
-                         |${space}}""".stripMargin
+        val elseIf = s"""${space}else if (${e.cond}) {
+                        |${e.trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
+                        |${space}}""".stripMargin
         elseIf + printElses(e.falseCase, i)
       }
-      case stmts =>  s""" else {
-                         |${stmts.map(_.prettyPrint(i + indent)).mkString("\n")}
-                         |${space}}
-                         |""".stripMargin
+      case stmts =>  s"""${space}else {
+                        |${stmts.map(_.prettyPrint(i + indent)).mkString("\n")}
+                        |${space}}
+                        |""".stripMargin
     }
   }
 
@@ -66,8 +66,8 @@ case class JSIf(cond: JSExpr,
     val space = i.spaces
 
     val theIf = s"""${space}if ($cond) {
-                       |${trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
-                       |${space}}""".stripMargin
+                   |${trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
+                   |${space}}""".stripMargin
 
     theIf + printElses(falseCase, i)
   }
@@ -85,7 +85,7 @@ case class JSThrow(exception: JSExpr) extends JSStmt {
 
 case class JSTry (tryStmts: Seq[JSStmt],
                   catchStmts: Seq[(Symbol, Seq[JSStmt])],
-                  finallyStmt: Option[Seq[JSStmt]]) extends JSStmt {
+                  finallyStmt: Option[Seq[JSStmt]] = None) extends JSStmt {
   def prettyPrint(i: Int): String = {
     val space = i.spaces
 
@@ -94,17 +94,17 @@ case class JSTry (tryStmts: Seq[JSStmt],
                     |${space}}""".stripMargin
 
     val catches = catchStmts map {
-      case (exception, body) => s""" catch (${exception.name}) {
+      case (exception, body) => s"""${space}catch (${exception.name}) {
                                     |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
                                     |${space}}""".stripMargin
     }
 
     val theFinally = finallyStmt match {
       case None => "\n"
-      case Some(stmts) => s""" finally {
-                              |${stmts.map(_.prettyPrint(i + indent)).mkString("\n")}
-                              |${space}}
-                              |""".stripMargin
+      case Some(stmts) => s"""${space}finally {
+                             |${stmts.map(_.prettyPrint(i + indent)).mkString("\n")}
+                             |${space}}
+                             |""".stripMargin
     }
 
     theTry + catches + theFinally
