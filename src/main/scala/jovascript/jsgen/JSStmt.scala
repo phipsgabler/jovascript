@@ -4,178 +4,158 @@ package jovascript.jsgen
 sealed trait JSStmt extends PrettyPrintable
 
 case class JSExprStmt(expr: JSExpr) extends JSStmt {
-  override def print(i: Int) = expr.print(i) + ";"
+  override def prettyPrint(i: Int) = expr.prettyPrint(i) + ";"
 }
 
 case class JSBlock(exprs: JSExpr*) extends JSStmt {
-  override def print(i: Int) =
+  override def prettyPrint(i: Int) =
     s"""{
-        |${exprs.map(_.print(i + indent)).mkString("\n")}
+        |${exprs.map(_.prettyPrint(i + indent)).mkString("\n")}
         |}
         |""".stripMargin
 }
 
 
 case object JSBreak extends JSStmt {
-  override def print(i: Int) = i.spaces + "break;\n"
+  override def prettyPrint(i: Int) = i.spaces + "break;\n"
 }
 
 case object JSContinue extends JSStmt {
-  override def print(i: Int) = i.spaces + "continue;\n"
+  override def prettyPrint(i: Int) = i.spaces + "continue;\n"
 }
 
 case object JSEmptyStmt extends JSStmt {
-  override def print(i: Int) = ";" // NO SPACES HERE?
+  override def prettyPrint(i: Int) = ";" // NO SPACES HERE?
 }
 
 case class JSFunctionDecl(name: String, args: String*)(body: JSStmt*) extends JSStmt {
-  override def print(i: Int): String = {
+  override def prettyPrint(i: Int): String = {
     val space = i.spaces
     s"""${space}function $name(${}) {
-       |${body.map(_.print(i + indent)).mkString("\n")}
+       |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}}
        |""".stripMargin
   }
 }
 
-class JSIfElse private (cond: JSExpr, trueCase: Seq[JSStmt],
-                        elifCases: Seq[(JSExpr, Seq[JSStmt])],
-                        elseCase: Seq[JSStmt]) extends JSStmt {
-  override def print(i: Int): String = {
+
+case class JSIf(cond: JSExpr,
+                trueCase: Seq[JSStmt],
+                falseCase: Seq[JSStmt]) extends JSStmt {
+
+  private def printElses(stmts: Seq[JSStmt], i: Int): String = {
+    val space = i.spaces
+
+    stmts.toList match {
+      case Nil => ""
+      case (e@JSIf(_, _, _)) :: rest => {
+        val elseIf = s""" else if (${e.cond}) {
+                         |${e.trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
+                         |${space}}""".stripMargin
+        elseIf + printElses(e.falseCase, i)
+      }
+      case stmts =>  s""" else {
+                         |${stmts.map(_.prettyPrint(i + indent)).mkString("\n")}
+                         |${space}}
+                         |""".stripMargin
+    }
+  }
+
+  override def prettyPrint(i: Int): String = {
     val space = i.spaces
 
     val theIf = s"""${space}if ($cond) {
-                   |${trueCase.map(_.print(i + indent)).mkString("\n")}
-                   |${space}}""".stripMargin
-    val elseIfs = elifCases map {
-      case (cond, body) => s""" else if ($cond) {
-                               |${body.map(_.print(i + indent)).mkString("\n")}
-                               |${space}}""".stripMargin
+                       |${trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
+                       |${space}}""".stripMargin
+
+    val theRest = falseCase.toList match {
+      case Nil => "\n"
+      case (e@JSIf(_, _, _)) :: rest => s""" else if (${e.cond}) {
+                                          |${e.trueCase.map(_.prettyPrint(i + indent)).mkString("\n")}
+                                          |${space}}""".stripMargin
+      case stmts =>  s""" else {
+                         |${stmts.map(_.prettyPrint(i + indent)).mkString("\n")}
+                         |${space}}
+                         |""".stripMargin
     }
 
-    val theElse = s""" else {
-                   |${elseCase.map(_.print(i + indent)).mkString("\n")}
-                   |${space}}
-                   |""".stripMargin
 
-    theIf + elseIfs + theElse
+    theIf + printElses(falseCase, i)
   }
+
+  def elseIf(elseCond: JSExpr)(body: Seq[JSStmt]) = JSIf(cond, trueCase, falseCase :+ JSIf(elseCond, body, Seq()))
+
+  def `else`(elseBody: Seq[JSStmt]) = JSIf(cond, trueCase, elseBody)
 }
 
-class JSIf private (cond: JSExpr, trueCase: Seq[JSStmt],
-                    elifCases: Seq[(JSExpr, Seq[JSStmt])]) extends JSStmt {
-
-  def elseIf(elseCond: JSExpr)(body: Seq[JSStmt]) = new JSIf(cond, trueCase, elifCases :+ (elseCond, body))
-
-  def `else`(elseBody: Seq[JSStmt]) = new JSIfElse(cond, trueCase, elifCases, elseBody)
-
-  def print(i: Int): String = {
-    val space = i.spaces
-
-    val theIf = s"""${space}if ($cond) {
-                   |${trueCase.map(_.print(i + indent)).mkString("\n")}
-                   |${space}}""".stripMargin
-    val elseIfs = elifCases map {
-      case (cond, body) => s""" else if ($cond) {
-                               |${body.map(_.print(i + indent)).mkString("\n")}
-                               |${space}}
-                               |""".stripMargin
-    }
-
-    theIf + elseIfs
-  }
-}
-
-object JSIf {
-  def apply(cond: JSExpr)(trueCases: Seq[JSStmt]) = new JSIf(cond, trueCases, Seq())
-}
 
 
 case class JSThrow(exception: JSExpr) extends JSStmt {
-  override def print(i: Int) = i.spaces + s"throw ($exception);"
+  override def prettyPrint(i: Int) = i.spaces + s"throw ($exception);"
 }
 
-class JSTry private (tryStmts: Seq[JSStmt],
-                     catchStmts: Seq[(String, Seq[JSStmt])],
-                     finallyStmts: Seq[JSStmt]) extends JSStmt {
-  def print(i: Int): String = {
+case class JSTry (tryStmts: Seq[JSStmt],
+                  catchStmts: Seq[(String, Seq[JSStmt])],
+                  finallyStmt: Option[Seq[JSStmt]]) extends JSStmt {
+  def prettyPrint(i: Int): String = {
     val space = i.spaces
 
     val theTry = s"""${space}try {
-                    |${tryStmts.map(_.print(i + indent)).mkString("\n")}
+                    |${tryStmts.map(_.prettyPrint(i + indent)).mkString("\n")}
                     |${space}}""".stripMargin
+
     val catches = catchStmts map {
       case (exception, body) => s""" catch ($exception) {
-                                    |${body.map(_.print(i + indent)).mkString("\n")}
+                                    |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
                                     |${space}}""".stripMargin
     }
-    val theFinally = s""" finally {
-                    |${finallyStmts.map(_.print(i + indent)).mkString("\n")}
-                    |${space}}
-                    |""".stripMargin
+
+    val theFinally = finallyStmt match {
+      case None => "\n"
+      case Some(stmts) => s""" finally {
+                              |${stmts.map(_.prettyPrint(i + indent)).mkString("\n")}
+                              |${space}}
+                              |""".stripMargin
+    }
 
     theTry + catches + theFinally
   }
-}
 
-class JSTryBuilder private (tryStmts: Seq[JSStmt],
-                            catchStmts: Seq[(String, Seq[JSStmt])]) extends JSTry{
-
-  def `catch`(exception: String)(body: JSStmt*) = new JSTryBuilder(tryStmts, catchStmts :+ (exception, body))
-  def `finally`(body: JSStmt*) = new JSTry(tryStmts, catchStmts, body)
-
-  override def print(i: Int): String = {
-    val space = i.spaces
-
-    val theTry = s"""${space}try {
-                   |${tryStmts.map(_.print(i + indent)).mkString("\n")}
-                   |${space}}""".stripMargin
-    val catches = catchStmts map {
-      case (exception, body) => s""" catch ($exception) {
-                               |${body.map(_.print(i + indent)).mkString("\n")}
-                               |${space}}
-                               |""".stripMargin
-    }
-
-    theTry + catches
-  }
-}
-
-object JSTry {
-  def apply(body: JSStmt*) = new JSTryBuilder(body, Seq(), Seq())
+  def `catch`(exception: String)(body: JSStmt*) = JSTry(tryStmts, catchStmts :+ (exception, body), finallyStmt)
+  def `finally`(body: JSStmt*) = JSTry(tryStmts, catchStmts, Some(body))
 }
 
 case class JSReturn(expr: JSExpr) extends JSStmt {
-  def print(i: Int) =  i.spaces + s"return ($expr);"
+  def prettyPrint(i: Int) =  i.spaces + s"return ($expr);"
 }
 
 
 case class JSVarDecl(name: String) extends JSStmt {
-  def print(i: Int) =  i.spaces + s"var $name;"
+  def prettyPrint(i: Int) =  i.spaces + s"var $name;"
 }
 
 case class JSVar(name: String, expr: JSExpr) extends JSStmt {
-  def print(i: Int) =  i.spaces + s"var $name = $expr;"
+  def prettyPrint(i: Int) =  i.spaces + s"var $name = $expr;"
 }
 
 case class JSLetDecl(name: String) extends JSStmt {
-  def print(i: Int) =  i.spaces + s"let $name;"
+  def prettyPrint(i: Int) =  i.spaces + s"let $name;"
 }
 
 case class JSLet(name: String, expr: JSExpr) extends JSStmt {
-  def print(i: Int) =  i.spaces + s"let $name = $expr;"
+  def prettyPrint(i: Int) =  i.spaces + s"let $name = $expr;"
 }
 
 case class JSConst(name: String, expr: JSExpr) extends JSStmt {
-  def print(i: Int) =  i.spaces + s"const $name = $expr;"
+  def prettyPrint(i: Int) =  i.spaces + s"const $name = $expr;"
 }
 
 case class JSFor(e1: JSExpr, e2: JSExpr, e3: JSExpr)(body: JSStmt*) extends JSStmt {
-  def print(i: Int) = {
+  def prettyPrint(i: Int) = {
     val space = i.spaces
 
     s"""${space}for ($e1; $e2; $e3) {
-       |${body.map(_.print(i + indent)).mkString("\n")}
+       |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}}
        |""".stripMargin
   }
@@ -183,44 +163,44 @@ case class JSFor(e1: JSExpr, e2: JSExpr, e3: JSExpr)(body: JSStmt*) extends JSSt
 
 
 case class JSForIn(name: String, expr: JSExpr)(body: JSStmt*) extends JSStmt {
-  def print(i: Int) = {
+  def prettyPrint(i: Int) = {
     val space = i.spaces
 
     s"""${space}for (let $name in $expr) {
-       |${body.map(_.print(i + indent)).mkString("\n")}
+       |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}}
        |""".stripMargin
   }
 }
 
 case class JSForOf(name: String, expr: JSExpr)(body: JSStmt*) extends JSStmt {
-  def print(i: Int) = {
+  def prettyPrint(i: Int) = {
     val space = i.spaces
 
     s"""${space}for (let $name of $expr) {
-       |${body.map(_.print(i + indent)).mkString("\n")}
+       |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}}
        |""".stripMargin
   }
 }
 
 case class JSWhile(cond: JSExpr)(body: JSStmt*) extends JSStmt {
-  def print(i: Int) = {
+  def prettyPrint(i: Int) = {
     val space = i.spaces
 
     s"""${space}while ($cond) {
-       |${body.map(_.print(i + indent)).mkString("\n")}
+       |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}}
        |""".stripMargin
   }
 }
 
 case class JSDo(body: JSStmt*)(cond: JSExpr) extends JSStmt {
-  def print(i: Int) = {
+  def prettyPrint(i: Int) = {
     val space = i.spaces
 
     s"""${space}do {
-       |${body.map(_.print(i + indent)).mkString("\n")}
+       |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}} while ($cond)
        |""".stripMargin
   }

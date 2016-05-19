@@ -1,7 +1,7 @@
 package jovascript.jsgen
 
 trait PrettyPrintable {
-  def print(indent: Int): String
+  def prettyPrint(indent: Int): String
 
-  override def toString: String = print(0)
+  override def toString: String = prettyPrint(0)
 }

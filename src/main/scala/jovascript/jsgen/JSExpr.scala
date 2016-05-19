@@ -49,56 +49,56 @@ sealed trait JSExpr extends PrettyPrintable {
   def |=(other: JSExpr) = JSBinOpCall(JSBinaryOperator.`|=`, this, other)
   def ^=(other: JSExpr) = JSBinOpCall(JSBinaryOperator.`^=`, this, other)
 
-  def apply(args: JSExpr*) = JSCall(this, args)
-  def index(args: JSExpr*) = JSIndex(this, args)
+  def apply(args: JSExpr*) = JSCall(this, args: _*)
+  def index(args: JSExpr*) = JSIndex(this, args: _*)
 }
 
 case object JSThis extends JSExpr {
-  override def print(i: Int): String = i.spaces + "this"
+  override def prettyPrint(i: Int): String = i.spaces + "this"
 }
 
 case object JSEmptyArray extends JSExpr {
-  override def print(i: Int): String = i.spaces + "[]"
+  override def prettyPrint(i: Int): String = i.spaces + "[]"
 }
 
 case object JSEmptyObject extends JSExpr
 {
-  override def print(i: Int): String = i.spaces + "{}"
+  override def prettyPrint(i: Int): String = i.spaces + "{}"
 }
 
 case object JSSuper extends JSExpr {
-  override def print(i: Int): String = i.spaces + "super"
+  override def prettyPrint(i: Int): String = i.spaces + "super"
 }
 
 case class JSFunction(args: String*)(body: JSStmt*) extends JSExpr {
-  override def print(i: Int): String = {
+  override def prettyPrint(i: Int): String = {
     val space = i.spaces
     s"""${space}function(${}) {
-       |${body.map(_.print(i + indent)).mkString("\n")}
+       |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}}""".stripMargin
   }
 }
 
 case class JSNew(constructor: JSExpr, args: JSExpr*) extends JSExpr {
-  override def print(i: Int): String = i.spaces + s"new $constructor(${args.mkString(", ")})"
+  override def prettyPrint(i: Int): String = i.spaces + s"new $constructor(${args.mkString(", ")})"
 }
 
 case class JSCall(obj: JSExpr, args: JSExpr*) extends JSExpr {
-  override def print(i: Int): String = i.spaces + s"$obj(${args.mkString(", ")})"
+  override def prettyPrint(i: Int): String = i.spaces + s"$obj(${args.mkString(", ")})"
 }
 
 case class JSIndex(obj: JSExpr, args: JSExpr*) extends JSExpr {
-  override def print(i: Int): String = i.spaces + s"$obj[${args.mkString(", ")}]"
+  override def prettyPrint(i: Int): String = i.spaces + s"$obj[${args.mkString(", ")}]"
 }
 
-case class JSUnOpCall(operator: JSUnaryOperator, obj: JSExpr) extends {
-  override def print(i: Int): String = i.spaces + s"$operator($obj)"
+case class JSUnOpCall(operator: JSUnaryOperator, obj: JSExpr) extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + s"$operator($obj)"
 }
 
 case class JSBinOpCall(operator: JSBinaryOperator, lhs: JSExpr, rhs: JSExpr) extends JSExpr {
-  override def print(i: Int): String = i.spaces + s"($lhs) $operator ($rhs)"
+  override def prettyPrint(i: Int): String = i.spaces + s"($lhs) $operator ($rhs)"
 }
 
-case class JSCondition(cond: JSExpr, trueCase: JSExpr, falseCase: JSExpr) extends JSExpr {
-  override def print(i: Int): String = i.spaces + s"($cond) ? ($trueCase) : ($falseCase)"
+case class JSConditional(cond: JSExpr, trueCase: JSExpr, falseCase: JSExpr) extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + s"($cond) ? ($trueCase) : ($falseCase)"
 }
