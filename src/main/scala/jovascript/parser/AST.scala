@@ -2,12 +2,19 @@ package jovascript.parser
 
 
 sealed trait AST
-case class ProgramNode(declarations: Seq[AST]) extends AST
 
-case class DefinitionNode(name: String, typ: TypeNode, body: ExpressionNode) extends AST
+case class ProgramNode(declarations: Seq[DefinitionNode]) extends AST
 
-trait TypeNode extends AST
-case class TypeNameNode(name: String) extends TypeNode
+sealed trait DefinitionNode extends AST
+case class ValueDefinitionNode(name: Symbol, typ: TypeNode, body: ExpressionNode) extends DefinitionNode
+//case class TypeDefinitionNode(name: Symbol, typ: TypeNode, body: ExpressionNode) extends AST
 
-trait ExpressionNode extends AST
-case class NumberLiteralNode(literal: String) extends ExpressionNode
+sealed trait TypeNode extends AST
+case class TypeNameNode(name: Symbol) extends TypeNode
+
+
+sealed trait ExpressionNode extends AST
+case class NumberLiteralNode(literal: Int) extends ExpressionNode
+case class IdentifierNode(name: Symbol) extends ExpressionNode
+case class LambdaNode(param: Symbol, typ: TypeNode, body: ExpressionNode) extends ExpressionNode
+case class WildcardNode(typ: TypeNode) extends ExpressionNode

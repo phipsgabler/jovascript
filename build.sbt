@@ -4,6 +4,15 @@ version := "0.1.0"
 
 scalaVersion := "2.11.2"
 
+scalacOptions := Seq(
+  "-feature",
+  "-language:higherKinds",
+  "-language:implicitConversions",
+  "-Xfatal-warnings",
+  "-deprecation",
+  "-unchecked"
+)
+
 mainClass in (Compile, run) := Some("jovascript.JovascriptInterpreter")
 
 antlr4Settings

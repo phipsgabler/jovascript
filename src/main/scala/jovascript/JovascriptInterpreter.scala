@@ -12,13 +12,10 @@ object JovascriptInterpreter {
         val lexer = new JovascriptLexer(inputStream)
         val tokens = new CommonTokenStream(lexer)
         val parser = new JovascriptParser(tokens)
-        val astVisitor = new JovascriptASTVisitor
-        val ast = astVisitor.visit(parser.program())
+        val ast = JovascriptASTVisitor.visit(parser.program())
 
         println(ast)
       }
     }
-
-
   }
 }
