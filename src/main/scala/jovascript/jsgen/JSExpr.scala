@@ -53,24 +53,7 @@ sealed trait JSExpr extends PrettyPrintable {
   def index(args: JSExpr*) = JSIndex(this, args: _*)
 }
 
-case object JSThis extends JSExpr {
-  override def prettyPrint(i: Int): String = i.spaces + "this"
-}
-
-case object JSEmptyArray extends JSExpr {
-  override def prettyPrint(i: Int): String = i.spaces + "[]"
-}
-
-case object JSEmptyObject extends JSExpr
-{
-  override def prettyPrint(i: Int): String = i.spaces + "{}"
-}
-
-case object JSSuper extends JSExpr {
-  override def prettyPrint(i: Int): String = i.spaces + "super"
-}
-
-case class JSFunction(args: String*)(body: JSStmt*) extends JSExpr {
+case class JSFunctionExpr(args: String*)(body: JSStmt*) extends JSExpr {
   override def prettyPrint(i: Int): String = {
     val space = i.spaces
     s"""${space}function(${}) {
@@ -101,4 +84,41 @@ case class JSBinOpCall(operator: JSBinaryOperator, lhs: JSExpr, rhs: JSExpr) ext
 
 case class JSConditional(cond: JSExpr, trueCase: JSExpr, falseCase: JSExpr) extends JSExpr {
   override def prettyPrint(i: Int): String = i.spaces + s"($cond) ? ($trueCase) : ($falseCase)"
+}
+
+case class JSAssign(lhs: JSExpr, rhs: JSExpr) extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + s"$lhs = $rhs"
+}
+
+// LITERALS
+case class JSIdentifier(name: Symbol) extends JSExpr {
+  override def prettyPrint(i: Int) : String = i.spaces + name.name
+}
+
+case object JSThis extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + "this"
+}
+
+case object JSSuper extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + "super"
+}
+
+case object JSEmptyArray extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + "[]"
+}
+
+case object JSEmptyObject extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + "{}"
+}
+
+case object JSNull extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + "null"
+}
+
+case class JSBoolean(value: Boolean) extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + value.toString
+}
+
+case class JSNumber(value: Int) extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + value.toString
 }
