@@ -1,6 +1,7 @@
 package jovascript
 
 import jovascript.parser._
+import jovascript.parser.gen._
 import org.antlr.v4.runtime._
 
 object JovascriptInterpreter {

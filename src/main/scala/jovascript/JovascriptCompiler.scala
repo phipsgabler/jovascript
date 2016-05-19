@@ -1,6 +1,7 @@
 package jovascript
 
-import jovascript.parser.{JovascriptASTVisitor, JovascriptParser, JovascriptLexer}
+import jovascript.parser.JovascriptASTVisitor
+import jovascript.parser.gen.{JovascriptParser, JovascriptLexer}
 import org.antlr.v4.runtime._
 
 object JovascriptCompiler {

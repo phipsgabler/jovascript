@@ -1,6 +1,7 @@
 package jovascript.parser
 
-import jovascript.parser.JovascriptParser._
+import jovascript.parser.gen.JovascriptParser._
+import jovascript.parser.gen._
 
 import scala.collection.JavaConversions._
 
