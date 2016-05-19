@@ -51,6 +51,7 @@ sealed trait JSExpr extends PrettyPrintable {
 
   def apply(args: JSExpr*) = JSCall(this, args: _*)
   def index(args: JSExpr*) = JSIndex(this, args: _*)
+  def get(property: Symbol) = JSGetProperty(this, property)
 }
 
 case class JSFunctionExpr(args: String*)(body: JSStmt*) extends JSExpr {
@@ -72,6 +73,10 @@ case class JSCall(obj: JSExpr, args: JSExpr*) extends JSExpr {
 
 case class JSIndex(obj: JSExpr, args: JSExpr*) extends JSExpr {
   override def prettyPrint(i: Int): String = i.spaces + s"$obj[${args.mkString(", ")}]"
+}
+
+case class JSGetProperty(obj: JSExpr, property: Symbol) extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + s"$obj.${property.name}"
 }
 
 case class JSUnOpCall(operator: JSUnaryOperator, obj: JSExpr) extends JSExpr {
