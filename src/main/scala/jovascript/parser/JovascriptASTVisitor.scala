@@ -35,7 +35,9 @@ object ExpressionVisitor extends JovascriptBaseVisitor[ExpressionNode] {
   }
 
   override def visitLambda(ctx: LambdaContext): ExpressionNode = {
-    IdentifierNode('?)
+    LambdaParameterVisitor.visit(ctx.parameter) match {
+      case (name, typ) => LambdaNode(name, typ, ExpressionVisitor.visit(ctx.expression))
+    }
   }
 
   override def visitOperatorExpression(ctx: OperatorExpressionContext): ExpressionNode = {
@@ -44,6 +46,22 @@ object ExpressionVisitor extends JovascriptBaseVisitor[ExpressionNode] {
 
   override def visitParenthesizedExpression(ctx: ParenthesizedExpressionContext): ExpressionNode = {
     visit(ctx.expression)
+  }
+}
+
+object LambdaParameterVisitor extends JovascriptBaseVisitor[(Symbol, TypeNode)] {
+  override def visitLambdaArgument(ctx: LambdaArgumentContext): (Symbol, TypeNode) = {
+    val name = ctx.ident.getText
+    val typ = TypeExpressionVisitor.visit(ctx.typ)
+    (Symbol(name), typ)
+  }
+
+  override def visitParenthesizedLambdaParam(ctx: ParenthesizedLambdaParamContext): (Symbol, TypeNode) = {
+    visit(ctx.lambdaArgument)
+  }
+
+  override def visitLambdaParam(ctx: LambdaParamContext): (Symbol, TypeNode) = {
+    visit(ctx.lambdaArgument)
   }
 }
 
