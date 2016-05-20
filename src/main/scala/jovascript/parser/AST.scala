@@ -1,5 +1,7 @@
 package jovascript.parser
 
+import jovascript.parser.UnaryOperator.UnaryOperator
+import jovascript.parser.BinaryOperator.BinaryOperator
 
 sealed trait AST
 
@@ -15,7 +17,16 @@ case class FunctionTypeNode(domain: TypeNode, codomain: TypeNode) extends TypeNo
 
 
 sealed trait ExpressionNode extends AST
-case class NumberLiteralNode(literal: Int) extends ExpressionNode
-case class IdentifierNode(name: Symbol) extends ExpressionNode
+
+sealed trait LiteralNode extends AST
+case class NumberLiteralNode(literal: Int) extends LiteralNode
+case class BoolLiteralNode(literal: Boolean) extends LiteralNode
+case class StringLiteralNode(literal: String) extends LiteralNode
+case class IdentifierNode(name: Symbol) extends LiteralNode
+case class WildcardNode(typ: TypeNode) extends LiteralNode
+
+case class MemberAccessNode(value: ExpressionNode, memberName: Symbol) extends ExpressionNode
+case class FunctionCallNode(value: ExpressionNode, arguments: Seq[ExpressionNode]) extends ExpressionNode
+case class UnaryOperatorCallNode(operator: UnaryOperator, argument: ExpressionNode) extends ExpressionNode
+case class BinaryOperatorCallNode(operator: BinaryOperator, lhs: ExpressionNode, rhs: ExpressionNode) extends ExpressionNode
 case class LambdaNode(param: Symbol, typ: TypeNode, body: ExpressionNode) extends ExpressionNode
-case class WildcardNode(typ: TypeNode) extends ExpressionNode
