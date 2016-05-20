@@ -54,13 +54,17 @@ sealed trait JSExpr extends PrettyPrintable {
   def get(property: Symbol) = JSGetProperty(this, property)
 }
 
-case class JSFunctionExpr(args: String*)(body: JSStmt*) extends JSExpr {
+case class JSFunctionExpr(args: Symbol*)(body: JSStmt*) extends JSExpr {
   override def prettyPrint(i: Int): String = {
     val space = i.spaces
-    s"""${space}function(${}) {
+    s"""${space}function(${args.map(_.name).mkString(", ")}) {
        |${body.map(_.prettyPrint(i + indent)).mkString("\n")}
        |${space}}""".stripMargin
   }
+}
+
+case class JSLambda(args: Symbol*)(body: JSExpr) extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + s"(${args.map(_.name).mkString(", ")}) => $body"
 }
 
 case class JSNew(constructor: JSExpr, args: JSExpr*) extends JSExpr {
@@ -126,4 +130,8 @@ case class JSBoolean(value: Boolean) extends JSExpr {
 
 case class JSNumber(value: Int) extends JSExpr {
   override def prettyPrint(i: Int): String = i.spaces + value.toString
+}
+
+case class JSString(value: String) extends JSExpr {
+  override def prettyPrint(i: Int): String = i.spaces + s"'$value'"
 }
