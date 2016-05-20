@@ -18,7 +18,7 @@ case class FunctionTypeNode(domain: TypeNode, codomain: TypeNode) extends TypeNo
 
 sealed trait ExpressionNode extends AST
 
-sealed trait LiteralNode extends AST
+sealed trait LiteralNode extends ExpressionNode
 case class NumberLiteralNode(literal: Int) extends LiteralNode
 case class BoolLiteralNode(literal: Boolean) extends LiteralNode
 case class StringLiteralNode(literal: String) extends LiteralNode

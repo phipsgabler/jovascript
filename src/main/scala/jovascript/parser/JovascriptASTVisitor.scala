@@ -31,20 +31,20 @@ private[parser] object expressionVisitor extends JovascriptBaseVisitor[Expressio
     NumberLiteralNode(ctx.NUMBER_LITERAL().getText.toInt)
   }
 
-  override def visitIdentifierExpression(ctx: IdentifierExpressionContext): ExpressionNode = {
+  override def visitIdentifierLiteral(ctx: IdentifierLiteralContext): ExpressionNode = {
     IdentifierNode(Symbol(ctx.IDENTIFIER().getText))
   }
 
-  override def visitLambda(ctx: LambdaContext): ExpressionNode = {
+  override def visitLambdaExpression(ctx: LambdaExpressionContext): ExpressionNode = {
     lambdaParameterVisitor(ctx.parameter) match {
       case (name, typ) => LambdaNode(name, typ, expressionVisitor(ctx.expression))
     }
   }
 
-  override def visitOperatorExpression(ctx: OperatorExpressionContext): ExpressionNode = {
-    // TODO: implement this
-    IdentifierNode('?)
-  }
+//  override def visitOperatorExpression(ctx: OperatorExpressionContext): ExpressionNode = {
+//    // TODO: implement this
+//    IdentifierNode('?)
+//  }
 
   override def visitParenthesizedExpression(ctx: ParenthesizedExpressionContext): ExpressionNode = {
     visit(ctx.expression)
