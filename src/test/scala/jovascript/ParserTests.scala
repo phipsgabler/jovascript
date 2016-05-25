@@ -1,8 +1,9 @@
 package jovascript
 
+import jovascript.testing.PropertySpec
 import org.scalacheck.Gen
 
-class ParserSpec extends PropertySpec {
+class ParserTests extends PropertySpec {
   property("test") {
     val validInts = Gen.choose(0, Int.MaxValue / 2 - 1)
 

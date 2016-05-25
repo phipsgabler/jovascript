@@ -1,4 +1,4 @@
-package jovascript
+package jovascript.testing
 
 import org.scalatest._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
