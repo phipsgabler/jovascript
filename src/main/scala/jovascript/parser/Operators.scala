@@ -2,6 +2,7 @@ package jovascript.parser
 
 object UnaryOperator extends Enumeration {
   type UnaryOperator = Value
+
   val `!` = Value("!")
   val `+` = Value("+")
   val `-` = Value("-")
