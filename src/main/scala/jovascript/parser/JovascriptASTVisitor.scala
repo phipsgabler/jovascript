@@ -5,19 +5,19 @@ import jovascript.parser.gen.{JovascriptBaseVisitor => _, _}
 
 import scala.collection.JavaConversions._
 
-object JovascriptASTVisitor extends JovascriptBaseVisitor[AST] {
-  override def visitProgram(ctx: JovascriptParser.ProgramContext): AST = {
+object JovascriptASTVisitor extends JovascriptVisitorExtended[AST] {
+  override def visitProgram(ctx: ProgramContext): AST = {
     programVisitor(ctx)
   }
 }
 
-private[parser] object programVisitor extends JovascriptBaseVisitor[ProgramNode] {
-  override def visitProgram(ctx: JovascriptParser.ProgramContext): ProgramNode = {
+private[parser] object programVisitor extends JovascriptVisitorExtended[ProgramNode] {
+  override def visitProgram(ctx: ProgramContext): ProgramNode = {
     ProgramNode(ctx.definition.map(definitionVisitor.visit).toSeq)
   }
 }
 
-private[parser] object definitionVisitor extends JovascriptBaseVisitor[DefinitionNode] {
+private[parser] object definitionVisitor extends JovascriptVisitorExtended[DefinitionNode] {
   override def visitValueDefinition(ctx: ValueDefinitionContext): DefinitionNode = {
     ValueDefinitionNode(
       Symbol(ctx.ident.getText),
@@ -26,7 +26,7 @@ private[parser] object definitionVisitor extends JovascriptBaseVisitor[Definitio
   }
 }
 
-private[parser] object expressionVisitor extends JovascriptBaseVisitor[ExpressionNode] {
+private[parser] object expressionVisitor extends JovascriptVisitorExtended[ExpressionNode] {
   override def visitNumberLiteral(ctx: NumberLiteralContext): ExpressionNode = {
     NumberLiteralNode(ctx.NUMBER_LITERAL().getText.toInt)
   }
@@ -51,7 +51,7 @@ private[parser] object expressionVisitor extends JovascriptBaseVisitor[Expressio
   }
 }
 
-private[parser] object lambdaParameterVisitor extends JovascriptBaseVisitor[(Symbol, TypeNode)] {
+private[parser] object lambdaParameterVisitor extends JovascriptVisitorExtended[(Symbol, TypeNode)] {
   override def visitLambdaArgument(ctx: LambdaArgumentContext): (Symbol, TypeNode) = {
     val name = ctx.ident.getText
     val typ = typeExpressionVisitor(ctx.typ)
@@ -67,7 +67,7 @@ private[parser] object lambdaParameterVisitor extends JovascriptBaseVisitor[(Sym
   }
 }
 
-private[parser] object typeExpressionVisitor extends JovascriptBaseVisitor[TypeNode] {
+private[parser] object typeExpressionVisitor extends JovascriptVisitorExtended[TypeNode] {
   override def visitFunctionType(ctx: FunctionTypeContext): TypeNode = {
     FunctionTypeNode(visit(ctx.dom), visit(ctx.cod))
   }
