@@ -12,19 +12,13 @@ object JovascriptParser {
     val tokens = new CommonTokenStream(lexer)
     val parser = new Parser(tokens)
 
-    println("adf")
-
     val errorListener = new JovascriptErrorListener()
     parser.removeErrorListeners()
     parser.addErrorListener(errorListener)
     lexer.removeErrorListeners()
     lexer.addErrorListener(errorListener)
 
-    println("adf")
-
     val parseTree = parser.program()
-
-    println("adf")
 
     errorListener.errors match {
       case None => Right(JovascriptASTVisitor.visit(parseTree))
